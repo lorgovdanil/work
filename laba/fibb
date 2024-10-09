@@ -1,0 +1,14 @@
+n = int(input())
+def f(matr,n):
+    if n == 0:
+        return [[1,0],[0,1]]
+    elif n == 1:
+        return matr
+    elif n % 2 == 0:
+        x = f(matr,n/2)
+        return [[sum(x[i][k] * x[k][j] for k in range(len(x))) for j in range(len(x))] for i in range(len(x))]
+    else:
+        x = f(matr,n-1)
+        return [[sum(x[i][k] * matr[k][j] for k in range(len(x))) for j in range(len(x))] for i in range(len(x))]
+sp = [[1,1],[1,0]]
+print(f(sp,n)[0][0])
