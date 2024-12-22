@@ -1,0 +1,117 @@
+from tkinter import Tk, Canvas
+IN_GAME = True
+CELL_WEIGHT = 40
+CELL_HEIGHT = 40
+SEG_SIZE = 20
+POLE = [[0 for _ in range(CELL_WEIGHT)]for _ in range(CELL_HEIGHT)]
+class Snake:
+    def __init__(self, x, y, color, name, up, down, left, right, initial_length=3):
+        self.color = color
+        self.name = name
+        self.segments = []
+        self.x = x
+        self.y = y
+        self.up = up
+        self.down = down
+        self.left = left
+        self.right = right
+        self.direction = self.up  # Начальное направление движения
+        # Задаем начальную длину змейки
+        for i in range(initial_length):
+            self.segments.append([x + i, y])
+            POLE[y][x + i] = 1
+            canvas.create_rectangle((x+i) * SEG_SIZE, y * SEG_SIZE, (x+i) * SEG_SIZE + SEG_SIZE, y * SEG_SIZE + SEG_SIZE, fill = color)
+    def move(self):
+        head_x, head_y = self.segments[-1]
+        if self.direction == self.right:
+            new_head = [head_x + 1, head_y]
+        elif self.direction ==  self.left:
+            new_head = [head_x - 1, head_y]
+        elif self.direction == self.up:
+            new_head = [head_x, head_y - 1]
+        elif self.direction == self.down:
+            new_head = [head_x, head_y + 1]
+        if 0 > new_head[0]:
+            new_head = [CELL_WEIGHT - 1, head_y]
+        elif new_head[0] >= CELL_WEIGHT:
+            new_head = [0, head_y]
+        if 0 > new_head[1]:
+            new_head = [head_x, CELL_HEIGHT - 1]
+        elif new_head[1] >= CELL_HEIGHT:
+            new_head = [head_x, 0]
+        # Обновляем сегменты змейки, добавляя голову и удаляя хвост
+        if POLE[new_head[0]][new_head[1]] == 0:
+            canvas.create_rectangle(new_head[0] * SEG_SIZE, new_head[1] * SEG_SIZE, new_head[0] * SEG_SIZE + SEG_SIZE,
+                                    new_head[1] * SEG_SIZE + SEG_SIZE, fill=self.color)
+            self.segments.append(new_head)
+            POLE[new_head[1]][new_head[0]] = 1
+            canvas.create_rectangle(self.segments[0][0] * SEG_SIZE, self.segments[0][1] * SEG_SIZE, self.segments[0][0] * SEG_SIZE + SEG_SIZE,
+                                    self.segments[0][1] * SEG_SIZE + SEG_SIZE, fill="black")
+            POLE[self.segments[0][1]][self.segments[0][0]] = 0
+            self.segments.pop(0)
+        elif POLE[new_head[0]][new_head[1]] == 1:
+            IN_GAME = False
+    def add_segment(self):
+        """Добавляет новый сегмент змейки в ее конец."""
+        tail_x, tail_y = self.segments[0]  # Координаты хвоста
+         # Добавляем новый сегмент за хвостом в соответствии с направлением змейки
+        if self.direction == self.right:
+           new_tail = [tail_x - 1, tail_y]
+        elif self.direction == self.left:
+            new_tail = [tail_x + 1, tail_y]
+        elif self.direction == self.up:
+            new_tail = [tail_x, tail_y + 1]
+        elif self.direction == self.down:
+            new_tail = [tail_x, tail_y - 1]
+        else:
+            raise ValueError("Недопустимое направление движения змейки.")
+        POLE[new_tail[1]][new_tail[0]] = 1
+        self.segments.insert(0, new_tail)  # вставляем новый сегмент в начало змейки
+    def change_direction(self, new_direction):
+        """Изменяет направление движения змейки."""
+        if new_direction in [self.up, self.down, self.left, self.right]:
+              # Змейка не может двигаться в противоположном направлении
+            if (self.direction == self.up and new_direction == self.down or
+                self.direction == self.down and new_direction == self.up or
+                self.direction == self.left and new_direction == self.right or
+                self.direction == self.right and new_direction == self.left):
+                   pass
+            else:
+                self.direction = new_direction
+        else:
+            raise ValueError("Недопустимое направление движения змейки.")
+def create_snake1():
+    return Snake(3,20,"red", "Амёба", "w", "s", "a", "d")
+def create_snake2():
+    return Snake(20,20,"green", "Агуша", "Up", "Down", "Left", "Right")
+
+def main():
+    """ Моделируем игровой процесс """
+    if IN_GAME:
+        snake_1.move()
+        snake_2.move()
+        root.after(100, main)
+    # Не IN_GAME -> останавливаем игру и выводим сообщения
+    else:
+        print(123)
+def snake_key_press(event):
+    """Функция-обработчик нажатий клавиш для змейки"""
+    if event.keysym in ["Up", "Down", "Left", "Right"]:
+        snake_2.change_direction(event.keysym)
+    else:
+        snake_1.change_direction(event.keysym)
+
+def start_game():
+    global snake_1
+    global snake_2
+    snake_1 = create_snake1()
+    snake_2 = create_snake2()
+    canvas.bind("<KeyPress>", snake_key_press)
+    main()
+root = Tk()
+root.title("Змейка")
+canvas = Canvas(root, width=CELL_WEIGHT*SEG_SIZE, height=CELL_HEIGHT*SEG_SIZE, bg="#111100")
+canvas.grid()
+canvas.focus_set()
+start_game()
+root.mainloop()
