@@ -1,56 +1,113 @@
 from tkinter import Tk, Canvas
+import random
+
 IN_GAME = True
-CELL_WEIGHT = 40
-CELL_HEIGHT = 40
+CELL_WEIGHT = 30
+CELL_HEIGHT = 30
 SEG_SIZE = 20
 POLE = [[0 for _ in range(CELL_WEIGHT)]for _ in range(CELL_HEIGHT)]
+count = 0
+
+class Score:
+    def __init__(self, x, y, name , color, font="Arial 20"):
+        self.x = x
+        self.y = y
+        self.name = name
+        self.text = "{}: {}".format(self.name, 0)
+        self.font = font
+        self.color = color
+        self.text_id = None
+    def create_text(self):
+        self.text_id = canvas.create_text(self.x, self.y, text=self.text, font=self.font, fill=self.color)
+
+    def update_text(self, new_text):
+        self.text = new_text
+        canvas.itemconfigure(self.text_id, text=self.text)
+
+class Segment(object):
+    """ Сегмент змейки """
+
+    def __init__(self, x, y, color, kind):
+        if kind == 1:
+            self.instance = canvas.create_rectangle(x, y,
+                                           x + SEG_SIZE, y + SEG_SIZE,
+                                           fill=color)
+        elif kind == 2:
+            self.instance = canvas.create_oval(x, y,
+                                                    x + SEG_SIZE, y + SEG_SIZE,
+                                                    fill=color)
 class Snake:
     def __init__(self, x, y, color, name, up, down, left, right, initial_length=3):
         self.color = color
         self.name = name
         self.segments = []
+        self.segments_2 = []
         self.x = x
         self.y = y
         self.up = up
         self.down = down
         self.left = left
         self.right = right
-        self.direction = self.up  # Начальное направление движения
+        self.score = 3
+        self.direction = self.right  # Начальное направление движения
+        #setf.score = Score()
         # Задаем начальную длину змейки
         for i in range(initial_length):
             self.segments.append([x + i, y])
             POLE[y][x + i] = 1
-            canvas.create_rectangle((x+i) * SEG_SIZE, y * SEG_SIZE, (x+i) * SEG_SIZE + SEG_SIZE, y * SEG_SIZE + SEG_SIZE, fill = color)
+            self.segments_2.append(Segment((x+i) * SEG_SIZE, y * SEG_SIZE, color,1))
+            #canvas.create_rectangle((x+i) * SEG_SIZE, y * SEG_SIZE, (x+i) * SEG_SIZE + SEG_SIZE, y * SEG_SIZE + SEG_SIZE, fill = color)
     def move(self):
+        global apple
+        global apple_2
+        global IN_GAME
         head_x, head_y = self.segments[-1]
         if self.direction == self.right:
-            new_head = [head_x + 1, head_y]
+            head_x += 1
         elif self.direction ==  self.left:
-            new_head = [head_x - 1, head_y]
+            head_x -= 1
         elif self.direction == self.up:
-            new_head = [head_x, head_y - 1]
+            head_y -= 1
         elif self.direction == self.down:
-            new_head = [head_x, head_y + 1]
-        if 0 > new_head[0]:
-            new_head = [CELL_WEIGHT - 1, head_y]
-        elif new_head[0] >= CELL_WEIGHT:
-            new_head = [0, head_y]
-        if 0 > new_head[1]:
-            new_head = [head_x, CELL_HEIGHT - 1]
-        elif new_head[1] >= CELL_HEIGHT:
-            new_head = [head_x, 0]
+            head_y += 1
+        if 0 > head_x:
+            head_x = CELL_WEIGHT - 1
+        elif head_x >= CELL_WEIGHT:
+            head_x = 0
+        if 0 > head_y:
+            head_y = CELL_HEIGHT - 1
+        elif head_y >= CELL_HEIGHT:
+            head_y = 0
         # Обновляем сегменты змейки, добавляя голову и удаляя хвост
-        if POLE[new_head[0]][new_head[1]] == 0:
-            canvas.create_rectangle(new_head[0] * SEG_SIZE, new_head[1] * SEG_SIZE, new_head[0] * SEG_SIZE + SEG_SIZE,
-                                    new_head[1] * SEG_SIZE + SEG_SIZE, fill=self.color)
-            self.segments.append(new_head)
-            POLE[new_head[1]][new_head[0]] = 1
-            canvas.create_rectangle(self.segments[0][0] * SEG_SIZE, self.segments[0][1] * SEG_SIZE, self.segments[0][0] * SEG_SIZE + SEG_SIZE,
-                                    self.segments[0][1] * SEG_SIZE + SEG_SIZE, fill="black")
+
+        if POLE[head_y][head_x] == 0:
+            self.segments.append([head_x, head_y])
+            POLE[head_y][head_x] = 1
+            for index in range(len(self.segments_2) - 1):
+                segment = self.segments_2[index].instance
+                x1, y1, x2, y2 = canvas.coords(self.segments_2[index + 1].instance)
+                canvas.coords(segment, x1, y1, x2, y2)
+            canvas.coords(self.segments_2[-1].instance,
+                    head_x * SEG_SIZE, head_y * SEG_SIZE,
+                    head_x * SEG_SIZE + SEG_SIZE, head_y * SEG_SIZE + SEG_SIZE)
             POLE[self.segments[0][1]][self.segments[0][0]] = 0
             self.segments.pop(0)
-        elif POLE[new_head[0]][new_head[1]] == 1:
-            IN_GAME = False
+        elif POLE[head_y][head_x] == 2:
+
+
+            self.segments.append([head_x, head_y])
+            POLE[head_y][head_x] = 1
+            self.segments_2.append(Segment(head_x * SEG_SIZE, head_y * SEG_SIZE, self.color,1))
+            self.score += 1
+            for i in range (len(apple)):
+                b, a = apple[i]
+                if b == head_y and a == head_x:
+                    apple.pop(i)
+                    canvas.delete(apple_2[i].instance)
+                    apple_2.pop(i)
+                    create_apple()
+        elif POLE[head_y][head_x] == 1:
+            self.revival()
     def add_segment(self):
         """Добавляет новый сегмент змейки в ее конец."""
         tail_x, tail_y = self.segments[0]  # Координаты хвоста
@@ -80,18 +137,73 @@ class Snake:
                 self.direction = new_direction
         else:
             raise ValueError("Недопустимое направление движения змейки.")
+
+    def revival (self):
+        for segm in range(len(self.segments) - 1, -1, -1):
+            x,y = self.segments[segm]
+            POLE[y][x] = 0
+            self.segments.pop(segm)
+            print("delete ", segm )
+            canvas.delete(self.segments_2[segm].instance)
+            self.segments_2.pop(segm)
+        for i in range(3):
+            self.segments.append([self.x + i, self.y])
+            POLE[self.y][self.x + i] = 1
+            self.segments_2.append(Segment((self.x + i) * SEG_SIZE, self.y * SEG_SIZE, self.color,1))
+            print("create ", i)
+            self.direction = self.right
 def create_snake1():
-    return Snake(3,20,"red", "Амёба", "w", "s", "a", "d")
+    return Snake(0,0,"red", "Амёба", "w", "s", "a", "d")
 def create_snake2():
-    return Snake(20,20,"green", "Агуша", "Up", "Down", "Left", "Right")
+    return Snake(0,CELL_HEIGHT - 1,"green", "Агуша", "Up", "Down", "Left", "Right")
+apple =[]
+apple_2 = []
+def create_wall():
+    global POLE
+    # горизонтали
+    for i in range(5):
+        a = random.randint(0, CELL_WEIGHT - 4)
+        b = random.randint(1, CELL_HEIGHT - 2)
+        for x in range(a, a+3):
+            POLE[b][x] = 1
+            canvas.create_rectangle(x*SEG_SIZE, b*SEG_SIZE,
+                                    x*SEG_SIZE + SEG_SIZE, b*SEG_SIZE + SEG_SIZE,
+                                    fill="brown")
+    # вертикали
+    for i in range(5):
+        a = random.randint(0, CELL_WEIGHT - 1)
+        b = random.randint(1, CELL_HEIGHT - 4)
+        for x in range(b, b + 3):
+            POLE[x][a] = 1
+            canvas.create_rectangle(a * SEG_SIZE, x * SEG_SIZE,
+                                    a * SEG_SIZE + SEG_SIZE, x * SEG_SIZE + SEG_SIZE,
+                                    fill="brown")
+def create_apple():
+    global apple
+    global apple_2
+    global POLE
+    create = False
+    while not create:
+        a = random.randint(0, CELL_WEIGHT-1)
+        b = random.randint(0, CELL_HEIGHT-1)
+        if POLE[b][a] == 0:
+            create = True
+            POLE[b][a] = 2
+            apple.append([b,a])
+            apple_2.append(Segment(a * SEG_SIZE, b * SEG_SIZE, "red", 2))
 
 def main():
     """ Моделируем игровой процесс """
+    global count
+    global IN_GAME
     if IN_GAME:
+        count += 1
         snake_1.move()
         snake_2.move()
+        if count % 20 == 0 and len(apple) < 50:
+            create_apple()
         root.after(100, main)
-    # Не IN_GAME -> останавливаем игру и выводим сообщения
+
     else:
         print(123)
 def snake_key_press(event):
@@ -106,7 +218,9 @@ def start_game():
     global snake_2
     snake_1 = create_snake1()
     snake_2 = create_snake2()
+    create_apple()
     canvas.bind("<KeyPress>", snake_key_press)
+    create_wall()
     main()
 root = Tk()
 root.title("Змейка")
