@@ -1,4 +1,20 @@
 import random
+
+class TableHP:
+    def __init__(self, name1, name2, canvas,CELL_WEIGHT, SEG_SIZE, font="Arial 10"):
+        self.x = CELL_WEIGHT * SEG_SIZE // 2
+        self.y = 30
+        self.name1 = name1
+        self.name2 = name2
+        self.text = "{} : {}\n {} : {}".format(self.name1, self.name2, 3, 3)
+        self.font = font
+        self.color = "yellow"
+        self.text_id = None
+        self.text_id = canvas.create_text(self.x, self.y, text=self.text, font=self.font, fill=self.color)
+    def update_text_hp(self, hp1, hp2, canvas):
+        self.text = "{} : {}\n  {} : {}".format(self.name1, self.name2, hp1, hp2)
+        canvas.itemconfigure(self.text_id, text=self.text)
+
 class Timer:
     def __init__(self, times, canvas, CELL_WEIGHT, SEG_SIZE,  font = "Arial 10"):
         self.x = CELL_WEIGHT * SEG_SIZE // 2
@@ -73,6 +89,7 @@ class Snake:
         self.right = right
         self.rez = 0
         self.direction = self.right
+        self.hp = 3
         for i in range(3):
             self.segments.append([x + i, y])
             POLE[y][x+i] = 1
