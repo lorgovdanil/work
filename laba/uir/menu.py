@@ -4,9 +4,9 @@ from tkinter import ttk, colorchooser
 from tkinter import Canvas
 
 from project_snake.Snake import Snake, create_apple, delete_apple, Score, delete_mega_apple, create_mega_apple, \
-    delete_black_apple, create_black_apple, Score2, Timer
+    delete_black_apple, create_black_apple, Score2, Timer, TableHP
 from project_snake.game_file_rezult import update_data, show_rezult, write_file
-from project_snake.rezult.setting_file import write_setting_file, read_setting_file
+from project_snake.setting_file import write_setting_file, read_setting_file
 from project_snake.wall import create_wall
 
 CELL_WEIGHT = 30
@@ -324,18 +324,23 @@ def create_survival_game(root):
         if POLE[y][x] == 0:
             sn1.move([x, y], canvas, POLE, SEG_SIZE)
         elif POLE[y][x] == 1:
-            flag = False
+            sn1.hp -= 1
+            if sn1.hp == 0:
+                flag = False
+            if not sn1.revival(POLE, canvas, SEG_SIZE, apple, apple_2):
+                flag = False
         elif POLE[y][x] == 2:
             sn1.rez += 1
             sn1.add_segment(x, y, canvas, POLE, SEG_SIZE)
             delete_apple(x, y, apple, apple_2, canvas)
         elif POLE[y][x] == 5:
+
             global MEGA_APPLE
             global destroy_mega_apple
             destroy_mega_apple = True
             delete_mega_apple(MEGA_APPLE, canvas)
             POLE[y][x] = 1
-            sn1.rez += 15
+            sn1.hp += 1
             sn1.add_segment(x, y, canvas, POLE, SEG_SIZE)
         elif POLE[y][x] == 6:
             global BLACK_APPLE
@@ -343,7 +348,6 @@ def create_survival_game(root):
             destroy_black_apple = True
             delete_black_apple(BLACK_APPLE, canvas)
             POLE[y][x] = 1
-            sn1.rez -= 5
             sn1.add_segment(x, y, canvas, POLE, SEG_SIZE)
             sn1.delete_segments(POLE, canvas)
         return flag
@@ -363,10 +367,14 @@ def create_survival_game(root):
         global destroy_mega_apple
         global destroy_black_apple
         global rezult_game
+        global speed_game_survival
         if IN_GAME:
             count += 1
+
             sn1_IN_GAME = move_survival(snake_1, canvas, apple, apple_2)
             sn2_IN_GAME = move_survival(snake_2, canvas, apple, apple_2)
+
+            table_hp.update_text_hp(snake_1.hp, snake_2.hp, canvas)
             if not sn1_IN_GAME and not sn2_IN_GAME:
                 rezult_game = 0.5
             elif not sn1_IN_GAME:
@@ -375,7 +383,7 @@ def create_survival_game(root):
                 rezult_game = 1
             if count % 10 == 0 and len(apple) < 50:
                 create_apple(apple, apple_2, POLE, CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, canvas)
-            if count % 50 == 0 and destroy_mega_apple:
+            if count % 250 == 0 and destroy_mega_apple:
                 destroy_mega_apple = False
                 MEGA_APPLE = create_mega_apple(CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, POLE, canvas)
             if count % 50 - 10== 0 and destroy_black_apple:
@@ -383,12 +391,10 @@ def create_survival_game(root):
                 BLACK_APPLE = create_black_apple(CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, POLE, canvas)
             if not (sn1_IN_GAME and sn2_IN_GAME):
                 IN_GAME = False
-
-            root1.after(100,main_survival)
+            if count % 750 == 0:
+                speed_game_survival = int(speed_game_survival * 4 / 5)
+            root1.after(speed_game_survival,main_survival)
         else:
-
-
-
             menu.end_game(3, rezult_game, 1 - rezult_game)
 
     def snake_key_press_survival(event):
@@ -397,6 +403,15 @@ def create_survival_game(root):
             snake_2.change_direction(event.keysym)
         elif event.keysym in ["w", "s", "a", "d"]:
             snake_1.change_direction(event.keysym)
+        elif event.char in ["ц", "ы", "ф", "в"]:
+            if event.char == "ц":
+                snake_1.change_direction("w")
+            elif event.char == "ы":
+                snake_1.change_direction("s")
+            elif event.char == "ф":
+                snake_1.change_direction("a")
+            elif event.char == "в":
+                snake_1.change_direction("d")
         else:
             pass
 
@@ -409,11 +424,13 @@ def create_survival_game(root):
     def start_survival_game(canvas, root1):
         global snake_1
         global snake_2
+        global table_hp
         sp = read_setting_file()
         snake_1 = create_snake1(sp[0], sp[3])
         snake_2 = create_snake2(sp[1], sp[4])
         canvas.bind("<KeyPress>", snake_key_press_survival)
         create_wall(POLE, CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, canvas)
+        table_hp = TableHP(snake_1.name, snake_2.name, canvas, CELL_WEIGHT, SEG_SIZE)
         main_survival()
     def update():
         global POLE
@@ -425,7 +442,7 @@ def create_survival_game(root):
         global destroy_black_apple
         global sn1_IN_GAME
         global sn2_IN_GAME
-        global speed
+        global speed_game_survival
         global time
         sp = read_setting_file()
         time = int(sp[-1])
@@ -434,7 +451,7 @@ def create_survival_game(root):
         apple_2 = []
         IN_GAME = True
         count = 0
-        speed = 100
+        speed_game_survival = 100
         destroy_mega_apple = True
         destroy_black_apple = True
 
