@@ -2,10 +2,8 @@ import os
 folder_name = 'rezult'
 project_directory = os.getcwd()
 
-folder_path = os.path.join(project_directory, folder_name)
+file_path = os.path.join(project_directory, "setting")
 def read_setting_file():
-    file_path= os.path.join(project_directory, folder_name)
-    file_path = os.path.join(file_path, 'setting')
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             content = file.readline()
@@ -20,8 +18,6 @@ def read_setting_file():
         print(f"Произошла ошибка: {e}")
         return []
 def write_setting_file(n, s):
-    file_path = os.path.join(project_directory, folder_name)
-    file_path = os.path.join(file_path, 'setting')
     sp = read_setting_file()
     if sp is []:
         pass
