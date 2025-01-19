@@ -1,8 +1,6 @@
 import os
 
-# Определите имя папки, которую хотите создать
 folder_name = 'rezult'
-# Определите путь к папке проекта
 project_directory = os.getcwd()
 
 folder_path = os.path.join(project_directory, folder_name)
@@ -11,24 +9,24 @@ def show_rezult(type):
     if type == 1:
         sp = read_file(1)
         if not sp:
-            s = "no rezult"
+            s = "нет результатов"
         else:
-            s = f"count victory:\n1 player: {sp[0]} 2 player: {sp[1]} \nbest rezult\n1 player: {int(sp[2])} 2 player: {int(sp[3])}"
+            s = f"Число побед:\n1 игрок: {sp[0]}/ 2 игрок: {sp[1]} \nлучшие результаты\n1 игрок: {int(sp[2])} 2 игрок: {int(sp[3])}"
         return s
     elif type == 2:
 
         sp = read_file(2)
         if not sp:
-            s = "no rezult"
+            s = "нет результатов"
         else:
-            s = f"Best rezult:\n1. {int(sp[0])}\n2. {int(sp[1])}\n3. {int(sp[2])}"
+            s = f"Лучшие результаты:\n1. {int(sp[0])}\n2. {int(sp[1])}\n3. {int(sp[2])}"
         return s
     elif type == 3:
         sp = read_file(3)
         if not sp:
-            s = "no rezult"
+            s = "нет результатов"
         else:
-            s = f"Count victory:\n1 player: {sp[0]}\n2 player: {sp[1]}\n"
+            s = f"Число побед:\n1 игрок: {sp[0]}\n2 игрок: {sp[1]}\n"
         return s
 def file_dual_game(value1, value2):
     if value1 > value2:
@@ -121,5 +119,3 @@ def create_dir(name):
         file_path = os.path.join(folder_path, file_name)
         with open(file_path, 'w') as file:
             file.write("")
-
-

@@ -1,4 +1,7 @@
 import random
+
+
+
 def create_wall(POLE, CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, canvas):
     # горизонтали
     for i in range(random.randint(1, 5)):

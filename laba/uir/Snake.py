@@ -1,4 +1,20 @@
 import random
+class Timer:
+    def __init__(self, times, canvas, CELL_WEIGHT, SEG_SIZE,  font = "Arial 10"):
+        self.x = CELL_WEIGHT * SEG_SIZE // 2
+        self.y = 30
+        self.times = times
+        self.text = "Time: {}".format(self.times)
+        self.font = font
+        self.canvas = canvas
+        self.color = "yellow"
+        self.text_id = None
+        self.text_id = canvas.create_text(self.x, self.y, text=self.text, font=self.font, fill=self.color)
+    def update_time(self):
+        self.times -= 1
+        self.text = "Time: {}".format(self.times)
+        self.canvas.itemconfigure(self.text_id, text=self.text)
+
 class Score:
     def __init__(self, name1, name2, canvas, font="Arial 10"):
         self.x = 70
@@ -199,8 +215,3 @@ def create_black_apple(CELL_WEIGHT, CELL_HEIGHT, SEG_SIZE, POLE, canvas):
     return MEGA_APPLE
 def delete_black_apple(BLACK_APPLE, canvas):
     canvas.delete(BLACK_APPLE)
-
-
-
-
-
